@@ -1,25 +1,19 @@
 from deepchem.molnet import load_bace_classification, load_bbbp
 import numpy as np
 
-from simcse import SimCSE
+
 import torch
-from torch.utils.data import TensorDataset, DataLoader, RandomSampler, SequentialSampler
+from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
+from dataset import MolDataset, mol_collator
 
 from args_parser import parse_args
 import sys
 import pandas as pd
 
-
 _datasets = {"bace": load_bace_classification, "bbbp": load_bbbp}
 
 
-def embed_smiles(model, smiles):
-    embeddings = model.encode(smiles)
-    return embeddings
-
-
 def get_dataloaders(args):
-    model = SimCSE(args.model_name_or_path)
 
     _, datasets, _ = _datasets.get(args.dataset_name)(reload=False)
     (train_dataset, valid_dataset, test_dataset) = datasets
@@ -43,32 +37,50 @@ def get_dataloaders(args):
 
     np.random.seed()
 
-    train_smiles = train_dataset.ids[train_indices]
-    train_embeddings = embed_smiles(model, smiles=list(train_smiles))
-    train_labels = np.array([y[0] for y in train_dataset.y[train_indices]])
+    train_smiles = list(train_dataset.ids[train_indices])
+    train_labels = [y[0] for y in train_dataset.y[train_indices]]
 
-    val_smiles = valid_dataset.ids
-    val_embeddings = embed_smiles(model, smiles=list(val_smiles))
-    val_labels = np.array([y[0] for y in valid_dataset.y])
+    val_smiles = list(valid_dataset.ids)
+    val_labels = [y[0] for y in valid_dataset.y]
 
-    test_smiles = test_dataset.ids
-    test_embeddings = embed_smiles(model, smiles=list(test_smiles))
-    test_labels = np.array([y[0] for y in test_dataset.y])
+    test_smiles = list(test_dataset.ids)
+    test_labels = [y[0] for y in test_dataset.y]
 
-    train_data = TensorDataset(train_embeddings, torch.Tensor(train_labels))
-    train_sampler = RandomSampler(train_data)
-    train_dataloader = DataLoader(
-        train_data, sampler=train_sampler, batch_size=args.batch_size
+    labelled_data = MolDataset(train_smiles, train_labels)
+    labelled_sampler = RandomSampler(labelled_data)
+    labelled_dataloader = DataLoader(
+        labelled_data,
+        sampler=labelled_sampler,
+        batch_size=args.batch_size,
+        collate_fn=mol_collator,
     )
 
-    val_data = TensorDataset(val_embeddings, torch.Tensor(val_labels))
-    val_sampler = RandomSampler(val_data)
-    val_dataloader = DataLoader(val_data, sampler=val_sampler, batch_size=len(val_data))
+    unlabelled_indices = list(label_df.drop(train_indices, axis=0).index)
+    unlabelled_data = MolDataset(
+        list(train_dataset.ids[unlabelled_indices]),
+        list([y[0] for y in train_dataset.y[unlabelled_indices]]),
+    )
+    unlabelled_sampler = RandomSampler(unlabelled_data)
+    unlabelled_dataloader = DataLoader(
+        unlabelled_data,
+        sampler=unlabelled_sampler,
+        batch_size=args.batch_size,
+        collate_fn=mol_collator,
+    )
 
-    test_data = TensorDataset(test_embeddings, torch.Tensor(test_labels))
+    val_data = MolDataset(val_smiles, val_labels)
+    val_sampler = RandomSampler(val_data)
+    val_dataloader = DataLoader(
+        val_data, sampler=val_sampler, batch_size=len(val_data), collate_fn=mol_collator
+    )
+
+    test_data = MolDataset(test_smiles, test_labels)
     test_sampler = RandomSampler(test_data)
     test_dataloader = DataLoader(
-        test_data, sampler=test_sampler, batch_size=len(test_data)
+        test_data,
+        sampler=test_sampler,
+        batch_size=len(test_data),
+        collate_fn=mol_collator,
     )
 
-    return train_dataloader, val_dataloader, test_dataloader
+    return labelled_dataloader, unlabelled_dataloader, val_dataloader, test_dataloader

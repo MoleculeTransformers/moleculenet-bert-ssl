@@ -2,6 +2,7 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 import torch.optim as optim
+from simcse import SimCSE
 
 from args_parser import parse_args
 from model import MolNet
@@ -15,17 +16,25 @@ if __name__ == "__main__":
     input_dim = 512
     output_dim = args.num_labels
     set_device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    embed_model = SimCSE(args.model_name_or_path)
 
-    train_dataloader, val_dataloader, test_dataloader = get_dataloaders(args)
+    (
+        labelled_dataloader,
+        unlabelled_dataloader,
+        val_dataloader,
+        test_dataloader,
+    ) = get_dataloaders(args)
     model_mlp = MolNet(input_dim=input_dim, output_dim=output_dim).to(set_device)
     criterion = nn.CrossEntropyLoss().to(set_device)
     optimizer = getattr(optim, "Adam")(model_mlp.parameters(), lr=args.lr)
 
     ## train model
     best_model = train_bert(
-        train_dataloader,
+        labelled_dataloader,
+        unlabelled_dataloader,
         val_dataloader,
         model_mlp,
+        embed_model,
         args,
         set_device,
         optimizer,
@@ -33,4 +42,4 @@ if __name__ == "__main__":
     )
 
     ## evaluate the model
-    evaluate_model(args, best_model, test_dataloader, criterion, set_device)
+    evaluate_model(args, best_model, embed_model, test_dataloader, criterion, set_device)

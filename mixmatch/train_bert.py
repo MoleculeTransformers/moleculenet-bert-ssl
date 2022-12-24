@@ -1,18 +1,59 @@
 import torch
 import numpy as np
-from utils import (
-    mixup_augment,
-    mixup_criterion_cross_entropy,
-    get_perm,
-    flat_auroc_score,
-)
+from utils import flat_auroc_score, sharpen, mixup_augment, augment_smiles, to_torch
+from mixmatch_loss import MixMatchLoss
+from itertools import cycle
+
+
+def mixmatch(
+    x, y, u, model, augment_fn, embed_model, T=0.5, K=2, alpha=0.75, num_labels=2
+):
+    xb = np.array(embed_model.encode([augment_fn(smiles, k=1)[0] for smiles in x]))
+    targets = np.array(y, dtype=int).reshape(-1)
+    y = np.eye(num_labels)[targets]
+
+    Ux, Uy = np.array([]), np.array([])
+    for unlabelled_smiles in u:
+        u_embed = embed_model.encode(augment_fn(unlabelled_smiles, k=K))
+        u_pred = (
+            sharpen(sum(map(lambda i: model(i), u_embed)) / u_embed.shape[0], T)
+            .detach()
+            .cpu()
+            .numpy()
+            .tolist()
+        )
+        qb = np.array([u_pred] * u_embed.shape[0])
+        if Ux.shape[0] == 0:
+            Ux = u_embed
+            Uy = qb
+        else:
+            Ux = np.concatenate([Ux, u_embed], axis=0)
+            Uy = np.concatenate([Uy, qb], axis=0)
+
+    indices = np.random.shuffle(np.arange(len(xb) + len(Ux)))
+    Wx = np.concatenate([Ux, xb], axis=0)[indices][0]
+    Wy = np.concatenate([Uy, y], axis=0)[indices][0]
+
+    X, p = mixup_augment(xb, Wx[: len(xb)], y, Wy[: len(xb)], alpha)
+    U, q = mixup_augment(Ux, Wx[len(xb) :], Uy, Wy[len(xb) :], alpha)
+    return X, U, p, q
 
 
 def train_bert(
-    train_dataloader, val_dataloader, model_mlp, args, set_device, optimizer, criterion
+    labelled_dataloader,
+    unlabelled_dataloader,
+    val_dataloader,
+    model_mlp,
+    embed_model,
+    args,
+    set_device,
+    optimizer,
+    criterion,
 ):
-    best_model = None
+    
 
+    loss_fn = MixMatchLoss()
+    best_model = None
     best_accuracy = 0.0
     train_loss_history, recall_train_history = [], []
     validation_loss_history, recall_validation_history = list(), list()
@@ -22,40 +63,32 @@ def train_bert(
         training_acc_scores = []
         y_pred, y_true = list(), list()
         predictions = []
-        for x, y in train_dataloader:
+        for labelled_batch, unlabelled_batch in zip(
+            cycle(labelled_dataloader), unlabelled_dataloader
+        ):
             ## perform forward pass
-            x = x.type(torch.FloatTensor).to(set_device)
-            y = y.type(torch.LongTensor).to(set_device)
-            for i in range(args.n_augment):
-                lam = np.random.beta(args.alpha, args.alpha)
-                indices_permuted = get_perm(x, args)
-                x2 = x[indices_permuted, :]
-                y2 = y[indices_permuted]
-                mixup_x, _ = mixup_augment(
-                    embedding1=x, embedding2=x2, label1=y, label2=y2, lam=lam
-                )
+            x, y = labelled_batch
+            u, _ = unlabelled_batch
+            x, u, p, q = mixmatch(
+                x=x,
+                y=y,
+                u=u,
+                model=model_mlp,
+                augment_fn=augment_smiles,
+                embed_model=embed_model,
+                K=args.n_augment,
+                num_labels=args.num_labels,
+            )
+            x, u, p, q = to_torch(x, u, p, q, device=set_device)
 
-                pred = model_mlp(mixup_x)
+            ## compute loss and perform backward pass
+            loss = loss_fn(x, u, p, q, model_mlp)
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
 
-                preds = torch.max(pred, 1)[1]
-
-                ## accumulate predictions per batch for the epoch
-                """y_pred += list([x.item() for x in preds.detach().cpu().numpy()])
-                    targets = torch.LongTensor([x.item() for x in list(targets)])
-                    y_true +=  list([x.item() for x in targets.detach().cpu().numpy()])"""
-
-                ## compute loss and perform backward pass
-                loss = mixup_criterion_cross_entropy(
-                    criterion, pred, y, y2, lam=lam
-                )  ## compute loss
-                optimizer.zero_grad()
-                loss.backward()
-                optimizer.step()
-
-                predictions.append(pred)
-
-                ## accumulate train loss
-                train_loss_scores.append(loss.item())
+            ## accumulate train loss
+            train_loss_scores.append(loss.item())
 
         ## accumulate loss, recall, f1, precision per epoch
         train_loss_history.append((sum(train_loss_scores) / len(train_loss_scores)))
@@ -73,7 +106,7 @@ def train_bert(
             ## perform validation pass
             for batch, targets in val_dataloader:
                 ## perform forward pass
-                batch = batch.type(torch.FloatTensor).to(set_device)
+                batch = embed_model.encode(batch).to(set_device, dtype=torch.float32)
                 pred = model_mlp(batch)
                 predictions = pred
                 preds = torch.max(pred, 1)[1]

@@ -2,7 +2,7 @@ import torch
 from utils import flat_auroc_score
 
 
-def evaluate_model(args, model_mlp, test_dataloader, criterion, set_device):
+def evaluate_model(args, model_mlp, embed_model, test_dataloader, criterion, set_device):
     test_loss_history, auroc_test_history = list(), list()
     model_mlp.eval()
     predictions = None
@@ -13,7 +13,7 @@ def evaluate_model(args, model_mlp, test_dataloader, criterion, set_device):
         ## perform test pass
         for batch, targets in test_dataloader:
             ## perform forward pass
-            batch = batch.type(torch.FloatTensor).to(set_device)
+            batch = embed_model.encode(batch).to(set_device, dtype=torch.float32)
             pred = model_mlp(batch)
             predictions = pred
             preds = torch.max(pred, 1)[1]
