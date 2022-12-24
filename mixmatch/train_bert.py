@@ -6,7 +6,17 @@ from itertools import cycle
 
 
 def mixmatch(
-    x, y, u, model, augment_fn, embed_model, T=0.5, K=2, alpha=0.75, num_labels=2
+    x,
+    y,
+    u,
+    model,
+    augment_fn,
+    embed_model,
+    device,
+    T=0.5,
+    K=2,
+    alpha=0.75,
+    num_labels=2,
 ):
     xb = np.array(embed_model.encode([augment_fn(smiles, k=1)[0] for smiles in x]))
     targets = np.array(y, dtype=int).reshape(-1)
@@ -15,6 +25,7 @@ def mixmatch(
     Ux, Uy = np.array([]), np.array([])
     for unlabelled_smiles in u:
         u_embed = embed_model.encode(augment_fn(unlabelled_smiles, k=K))
+        u_embed.to(device)
         u_pred = (
             sharpen(sum(map(lambda i: model(i), u_embed)) / u_embed.shape[0], T)
             .detach()
@@ -50,7 +61,6 @@ def train_bert(
     optimizer,
     criterion,
 ):
-    
 
     loss_fn = MixMatchLoss()
     best_model = None
@@ -76,6 +86,7 @@ def train_bert(
                 model=model_mlp,
                 augment_fn=augment_smiles,
                 embed_model=embed_model,
+                device=set_device,
                 K=args.n_augment,
                 num_labels=args.num_labels,
             )
