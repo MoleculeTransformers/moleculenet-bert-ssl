@@ -5,7 +5,12 @@ from keras_preprocessing.sequence import pad_sequences
 from transformers import BertTokenizer
 from tqdm import tqdm
 import logging
-from deepchem.molnet import load_bbbp, load_bace_classification
+from deepchem.molnet import (
+    load_bbbp,
+    load_bace_classification,
+    load_tox21,
+    load_clintox,
+)
 import numpy as np
 from tqdm import tqdm
 
@@ -16,7 +21,12 @@ logging.basicConfig(filename="data_loader.log", level=logging.INFO)
 logger = logging.getLogger()
 
 
-MOLECULE_NET_DATASETS = {"bbbp": load_bbbp, "bace": load_bace_classification}
+MOLECULE_NET_DATASETS = {
+    "bbbp": load_bbbp,
+    "bace": load_bace_classification,
+    "tox21": load_tox21,
+    "clintox": load_clintox,
+}
 
 
 class MoleculeData:
@@ -33,6 +43,7 @@ class MoleculeData:
         Load dataset and bert tokenizer
         """
         self.debug = debug
+        self.dataset_name = dataset_name
         ## load data into memory
         tasks, datasets, transformers = MOLECULE_NET_DATASETS[dataset_name](
             reload=False
@@ -58,9 +69,15 @@ class MoleculeData:
             print("Debug mode is enabled")
             num_samples = 100
         train_molecules = self.train_dataset.ids[:num_samples]
-        train_labels = np.array(
-            [int(label[0]) for label in self.train_dataset.y][:num_samples]
-        )
+        train_labels = None
+        if self.dataset_name == "clintox":
+            train_labels = self.train_dataset.y[:num_samples, 1]
+        elif self.dataset_name == "tox21":
+            train_labels = self.train_dataset.y[:num_samples, 11]
+        else:
+            train_labels = np.array(
+                [int(label[0]) for label in self.train_dataset.y][:num_samples]
+            )
 
         self.indices = []
         tp, tn = [], []
@@ -98,10 +115,22 @@ class MoleculeData:
             train_labels += aug_labels
 
         val_molecules = self.valid_dataset.ids
-        val_labels = [int(label[0]) for label in self.valid_dataset.y]
+        val_labels = None
+        if self.dataset_name == "clintox":
+            val_labels = list(self.valid_dataset.y[:num_samples, 1])
+        elif self.dataset_name == "tox21":
+            val_labels = list(self.valid_dataset.y[:num_samples, 11])
+        else:
+            val_labels = [int(label[0]) for label in self.valid_dataset.y]
 
         test_molecules = self.test_dataset.ids
-        test_labels = [int(label[0]) for label in self.test_dataset.y]
+        test_labels = None
+        if self.dataset_name == "clintox":
+            test_labels = list(self.test_dataset.y[:num_samples, 1])
+        elif self.dataset_name == "tox21":
+            test_labels = list(self.test_dataset.y[:num_samples, 11])
+        else:
+            test_labels = [int(label[0]) for label in self.test_dataset.y]
 
         return (
             train_molecules,
