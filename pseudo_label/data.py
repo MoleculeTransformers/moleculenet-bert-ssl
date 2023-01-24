@@ -87,12 +87,18 @@ class MoleculeData:
             np.random.seed()
             tp = np.random.choice(
                 list(self.label_df[self.label_df["labels"] == 1].index),
-                self.samples_per_class,
+                np.min(
+                    self.samples_per_class,
+                    len(list(self.label_df[self.label_df["labels"] == 1].index)),
+                ),
                 replace=False,
             )
             tn = np.random.choice(
                 list(self.label_df[self.label_df["labels"] == 0].index),
-                self.samples_per_class,
+                np.min(
+                    self.samples_per_class,
+                    len(list(self.label_df[self.label_df["labels"] == 1].index)),
+                ),
                 replace=False,
             )
             self.indices = list(tp) + list(tn)
