@@ -97,7 +97,7 @@ class MoleculeData:
                 list(self.label_df[self.label_df["labels"] == 0].index),
                 min(
                     self.samples_per_class,
-                    len(list(self.label_df[self.label_df["labels"] == 1].index)),
+                    len(list(self.label_df[self.label_df["labels"] == 0].index)),
                 ),
                 replace=False,
             )
