@@ -79,7 +79,7 @@ class MoleculeDataLoader:
         )
         validation_sampler = RandomSampler(validation_data)
         self.validation_dataloader = DataLoader(
-            validation_data, sampler=validation_sampler, batch_size=self.batch_size * 4
+            validation_data, sampler=validation_sampler, batch_size=len(validation_data)
         )
 
         test_data = TensorDataset(
@@ -89,7 +89,7 @@ class MoleculeDataLoader:
         )
         test_sampler = RandomSampler(test_data)
         self.test_dataloader = DataLoader(
-            test_data, sampler=test_sampler, batch_size=self.batch_size * 4
+            test_data, sampler=test_sampler, batch_size=len(test_data)
         )
         print("finished creating dataloaders")
 
@@ -168,7 +168,7 @@ class MoleculeDataLoader:
         )
         validation_sampler = RandomSampler(validation_data)
         self.validation_dataloader = DataLoader(
-            validation_data, sampler=validation_sampler, batch_size=self.batch_size * 4
+            validation_data, sampler=validation_sampler, batch_size=len(validation_data)
         )
 
         test_data = TensorDataset(
@@ -178,7 +178,7 @@ class MoleculeDataLoader:
         )
         test_sampler = RandomSampler(test_data)
         self.test_dataloader = DataLoader(
-            test_data, sampler=test_sampler, batch_size=self.batch_size * 4
+            test_data, sampler=test_sampler, batch_size=len(test_data)
         )
         print("finished creating dataloaders")
 
