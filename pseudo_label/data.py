@@ -8,10 +8,10 @@ import logging
 from deepchem.molnet import (
     load_bbbp,
     load_bace_classification,
-    load_tox21,
     load_clintox,
 )
 import numpy as np
+import pickle
 from tqdm import tqdm
 
 ## setting the threshold of logger to INFO
@@ -21,10 +21,17 @@ logging.basicConfig(filename="data_loader.log", level=logging.INFO)
 logger = logging.getLogger()
 
 
+def load_tox21_local():
+    dataset = None
+    with open("tox21_dataset.pickle", "rb") as f:
+        dataset = pickle.load(f)
+    return dataset
+
+
 MOLECULE_NET_DATASETS = {
     "bbbp": load_bbbp,
     "bace": load_bace_classification,
-    "tox21": load_tox21,
+    "tox21": load_tox21_local,
     "clintox": load_clintox,
 }
 
@@ -78,7 +85,7 @@ class MoleculeData:
             train_labels = np.array(
                 [int(label[0]) for label in self.train_dataset.y][:num_samples]
             )
-
+        print(train_labels.shape)
         self.indices = []
         tp, tn = [], []
         self.augmented_data_index = len(train_molecules)
@@ -97,7 +104,7 @@ class MoleculeData:
                 list(self.label_df[self.label_df["labels"] == 0].index),
                 min(
                     self.samples_per_class,
-                    len(list(self.label_df[self.label_df["labels"] == 1].index)),
+                    len(list(self.label_df[self.label_df["labels"] == 0].index)),
                 ),
                 replace=False,
             )
