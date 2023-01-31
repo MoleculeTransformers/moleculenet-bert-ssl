@@ -21,7 +21,7 @@ logging.basicConfig(filename="data_loader.log", level=logging.INFO)
 logger = logging.getLogger()
 
 
-def load_tox21_local():
+def load_tox21_local(reload):
     dataset = None
     with open("tox21_dataset.pickle", "rb") as f:
         dataset = pickle.load(f)
