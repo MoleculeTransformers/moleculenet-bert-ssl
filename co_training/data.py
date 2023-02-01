@@ -36,6 +36,7 @@ class MoleculeData:
             "shahrukhx01/smole-bert", do_lower_case=True
         )
         self.enumerator = SmilesEnumerator()
+        self.dataset_name = dataset_name
 
     def train_val_test_split(self):
         """
@@ -52,21 +53,41 @@ class MoleculeData:
             for smiles in molecules_view1
         ]
 
-        train_labels = [int(label[0]) for label in self.train_dataset.y][:num_samples]
+        train_labels = None
+        if self.dataset_name == "clintox":
+            train_labels = self.train_dataset.y[:num_samples, 1]
+        elif self.dataset_name == "tox21":
+            train_labels = self.train_dataset.y[:num_samples, 11]
+        else:
+            train_labels = np.array(
+                [int(label[0]) for label in self.train_dataset.y][:num_samples]
+            )
 
         val_molecules_view1 = self.valid_dataset.ids
         val_molecules_view2 = [
             self.enumerator.enumerate_smiles(input_smiles=smiles)
             for smiles in val_molecules_view1
         ]
-        val_labels = [int(label[0]) for label in self.valid_dataset.y]
+        val_labels = None
+        if self.dataset_name == "clintox":
+            val_labels = list(self.valid_dataset.y[:num_samples, 1])
+        elif self.dataset_name == "tox21":
+            val_labels = list(self.valid_dataset.y[:num_samples, 11])
+        else:
+            val_labels = [int(label[0]) for label in self.valid_dataset.y]
 
         test_molecules_view1 = self.test_dataset.ids
         test_molecules_view2 = [
             self.enumerator.enumerate_smiles(input_smiles=smiles)
             for smiles in test_molecules_view1
         ]
-        test_labels = [int(label[0]) for label in self.test_dataset.y]
+        test_labels = None
+        if self.dataset_name == "clintox":
+            test_labels = list(self.test_dataset.y[:num_samples, 1])
+        elif self.dataset_name == "tox21":
+            test_labels = list(self.test_dataset.y[:num_samples, 11])
+        else:
+            test_labels = [int(label[0]) for label in self.test_dataset.y]
 
         return (
             molecules_view1,
