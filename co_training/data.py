@@ -4,7 +4,12 @@ from keras_preprocessing.sequence import pad_sequences
 from transformers import BertTokenizer
 from tqdm import tqdm
 import logging
-from deepchem.molnet import load_bbbp, load_bace_classification
+from deepchem.molnet import (
+    load_bbbp,
+    load_bace_classification,
+    load_tox21,
+    load_clintox,
+)
 import numpy as np
 from enumeration import SmilesEnumerator
 
@@ -16,7 +21,12 @@ logging.basicConfig(filename="data_loader.log", level=logging.INFO)
 logger = logging.getLogger()
 
 
-MOLECULE_NET_DATASETS = {"bbbp": load_bbbp, "bace": load_bace_classification}
+MOLECULE_NET_DATASETS = {
+    "bbbp": load_bbbp,
+    "bace": load_bace_classification,
+    "tox21": load_tox21,
+    "clintox": load_clintox,
+}
 
 
 class MoleculeData:
