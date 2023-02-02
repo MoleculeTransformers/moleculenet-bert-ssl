@@ -71,8 +71,18 @@ class MoleculeDataLoader:
         indices = []
         label_df = pd.DataFrame(self.molecule_data.train_labels, columns=["labels"])
         if samples_per_class > 0:
-            tp = label_df[label_df["labels"] == 1].sample(samples_per_class)
-            tn = label_df[label_df["labels"] == 0].sample(samples_per_class)
+            tp = label_df[label_df["labels"] == 1].sample(
+                min(
+                    samples_per_class,
+                    len(list(label_df[label_df["labels"] == 1].index)),
+                )
+            )
+            tn = label_df[label_df["labels"] == 0].sample(
+                min(
+                    samples_per_class,
+                    len(list(label_df[label_df["labels"] == 0].index)),
+                )
+            )
             indices = list(tp.index) + list(tn.index)
             self.data_view_1 = TensorDataset(
                 self.molecule_data.train_inputs_view1[indices],
