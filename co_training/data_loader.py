@@ -119,8 +119,6 @@ class MoleculeDataLoader:
 
         ## create unlabelled dataloader
         unlabelled_indices = list(label_df.drop(indices, axis=0).index)
-        if self.molecule_data.dataset_name == "tox21":
-            unlabelled_indices = random.sample(unlabelled_indices, 1000)
         self.unlabelled_data_view1 = [
             {
                 "train_inputs": self.molecule_data.train_inputs_view1[unlab_index],
