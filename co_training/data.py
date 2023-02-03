@@ -83,7 +83,7 @@ class MoleculeData:
                 [int(label[0]) for label in self.train_dataset.y][:num_samples]
             )
 
-        val_molecules_view1 = self.valid_dataset.ids
+        val_molecules_view1 = self.valid_dataset.ids[:100]
         val_molecules_view2 = [
             self.enumerator.enumerate_smiles(input_smiles=smiles)
             for smiles in val_molecules_view1
@@ -92,11 +92,11 @@ class MoleculeData:
         if self.dataset_name == "clintox":
             val_labels = list(self.valid_dataset.y[:num_samples, 1])
         elif self.dataset_name == "tox21":
-            val_labels = list(self.valid_dataset.y[:num_samples, 11])
+            val_labels = list(self.valid_dataset.y[:100, 11])
         else:
             val_labels = [int(label[0]) for label in self.valid_dataset.y]
 
-        test_molecules_view1 = self.test_dataset.ids
+        test_molecules_view1 = self.test_dataset.ids[:100]
         test_molecules_view2 = [
             self.enumerator.enumerate_smiles(input_smiles=smiles)
             for smiles in test_molecules_view1
@@ -105,7 +105,7 @@ class MoleculeData:
         if self.dataset_name == "clintox":
             test_labels = list(self.test_dataset.y[:num_samples, 1])
         elif self.dataset_name == "tox21":
-            test_labels = list(self.test_dataset.y[:num_samples, 11])
+            test_labels = list(self.test_dataset.y[:100, 11])
         else:
             test_labels = [int(label[0]) for label in self.test_dataset.y]
 
