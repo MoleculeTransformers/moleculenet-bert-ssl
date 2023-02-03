@@ -62,8 +62,8 @@ class MoleculeData:
             num_samples = 100
         elif self.dataset_name == "tox21":
             label_df = pd.DataFrame(self.train_dataset.y[:, 11], columns=["labels"])
-            _indices = list(label_df[label_df["labels"] == 1].index) + random.sample(
-                list(label_df[label_df["labels"] == 0].index), 800
+            _indices = list(label_df[label_df["labels"] == 1].index)[:100] + random.sample(
+                list(label_df[label_df["labels"] == 0].index), 100
             )
 
             molecules_view1 = self.train_dataset.ids[_indices]
