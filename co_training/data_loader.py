@@ -2,6 +2,7 @@ from torch.utils.data import TensorDataset, DataLoader, RandomSampler, Sequentia
 from data import MoleculeData
 import pandas as pd
 import numpy as np
+import random
 
 
 class MoleculeDataLoader:
@@ -118,6 +119,8 @@ class MoleculeDataLoader:
 
         ## create unlabelled dataloader
         unlabelled_indices = list(label_df.drop(indices, axis=0).index)
+        if self.molecule_data.dataset_name == "tox21":
+            unlabelled_indices = random.choice(unlabelled_indices, 1500)
         self.unlabelled_data_view1 = [
             {
                 "train_inputs": self.molecule_data.train_inputs_view1[unlab_index],
