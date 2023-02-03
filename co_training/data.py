@@ -62,9 +62,9 @@ class MoleculeData:
             num_samples = 100
         elif self.dataset_name == "tox21":
             label_df = pd.DataFrame(self.train_dataset.y[:, 11], columns=["labels"])
-            _indices = list(label_df[label_df["labels"] == 1].index)[:100] + random.sample(
-                list(label_df[label_df["labels"] == 0].index), 100
-            )
+            _indices = list(label_df[label_df["labels"] == 1].index)[
+                :1000
+            ] + random.sample(list(label_df[label_df["labels"] == 0].index), 2800)
 
             molecules_view1 = self.train_dataset.ids[_indices]
             train_labels = self.train_dataset.y[_indices, 11]
@@ -96,7 +96,7 @@ class MoleculeData:
         else:
             val_labels = [int(label[0]) for label in self.valid_dataset.y]
 
-        test_molecules_view1 = self.test_dataset.ids[:100]
+        test_molecules_view1 = self.test_dataset.ids
         test_molecules_view2 = [
             self.enumerator.enumerate_smiles(input_smiles=smiles)
             for smiles in test_molecules_view1
@@ -105,7 +105,7 @@ class MoleculeData:
         if self.dataset_name == "clintox":
             test_labels = list(self.test_dataset.y[:num_samples, 1])
         elif self.dataset_name == "tox21":
-            test_labels = list(self.test_dataset.y[:100, 11])
+            test_labels = list(self.test_dataset.y[:num_samples, 11])
         else:
             test_labels = [int(label[0]) for label in self.test_dataset.y]
 
