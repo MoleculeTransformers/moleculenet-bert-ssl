@@ -2,7 +2,6 @@ from torch.utils.data import TensorDataset, DataLoader, RandomSampler, Sequentia
 from data import MoleculeData
 import pandas as pd
 import numpy as np
-import random
 
 
 class MoleculeDataLoader:
