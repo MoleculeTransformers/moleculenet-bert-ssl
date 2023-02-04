@@ -380,9 +380,10 @@ def train_co_training(
         # Tracking variables
         eval_accuracy_view1, eval_accuracy_view2, eval_accuracy_combined = 0, 0, 0
         nb_eval_steps = 0
-
+        labels_view1, predictions_view1 = [], []
+        labels_view2, predictions_view2 = [], []
         # Evaluate data for one epoch
-        for batch_view1, batch_view2 in zip(
+        """for batch_view1, batch_view2 in zip(
             validation_dataloader_view1,
             validation_dataloader_view2,
         ):
@@ -450,6 +451,6 @@ def train_co_training(
                 "Validation auroc score combined: {}".format(
                     eval_accuracy_combined / nb_eval_steps
                 )
-            )
+            )"""
 
     return None  # model

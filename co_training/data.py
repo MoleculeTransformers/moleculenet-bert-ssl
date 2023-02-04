@@ -5,7 +5,6 @@ from transformers import BertTokenizer
 from tqdm import tqdm
 import logging
 
-
 from deepchem.molnet import (
     load_bbbp,
     load_bace_classification,
@@ -75,7 +74,7 @@ class MoleculeData:
                 [int(label[0]) for label in self.train_dataset.y][:num_samples]
             )
 
-        val_molecules_view1 = self.valid_dataset.ids[:100]
+        val_molecules_view1 = self.valid_dataset.ids
         val_molecules_view2 = [
             self.enumerator.enumerate_smiles(input_smiles=smiles)
             for smiles in val_molecules_view1
@@ -84,7 +83,7 @@ class MoleculeData:
         if self.dataset_name == "clintox":
             val_labels = list(self.valid_dataset.y[:num_samples, 1])
         elif self.dataset_name == "tox21":
-            val_labels = list(self.valid_dataset.y[:100, 11])
+            val_labels = list(self.valid_dataset.y[:num_samples, 11])
         else:
             val_labels = [int(label[0]) for label in self.valid_dataset.y]
 
