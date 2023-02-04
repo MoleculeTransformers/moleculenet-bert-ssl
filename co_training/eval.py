@@ -59,8 +59,6 @@ def eval_model(
         predictions_view2 += list(logits_view2[0].detach().cpu().numpy())
         labels_view2 += list(b_labels_view2.to("cpu").numpy())
 
-        eval_accuracy_combined += tmp_eval_accuracy_combined
-        nb_eval_steps += 1
     tmp_eval_accuracy_view1 = flat_auroc_score(predictions_view1, labels_view1)
     tmp_eval_accuracy_view2 = flat_auroc_score(predictions_view2, labels_view2)
     tmp_eval_accuracy_combined = flat_auroc_score(
