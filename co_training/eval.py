@@ -18,13 +18,15 @@ def eval_model(
     nb_eval_steps = 0
     model_view1.eval()
     model_view2.eval()
+    model_view1.to("cpu")
+    model_view2.to("cpu")
     # Evaluate data for one epoch
     for batch_view1, batch_view2 in zip(
         test_dataloader_view1,
         test_dataloader_view2,
     ):
         # add batch to GPU
-        batch_view1 = tuple(t.to(device) for t in batch_view1)
+        # batch_view1 = tuple(t.to(device) for t in batch_view1)
         # unpack the inputs from our dataloader
         b_input_ids_view1, b_input_mask_view1, b_labels_view1 = batch_view1
         # avoiding model's computation and storage of gradients -> saving memory and speeding up validation
@@ -44,7 +46,7 @@ def eval_model(
 
         eval_accuracy_view1 += tmp_eval_accuracy_view1
         # add batch to GPU
-        batch_view2 = tuple(t.to(device) for t in batch_view2)
+        # batch_view2 = tuple(t.to(device) for t in batch_view2)
         # unpack the inputs from our dataloader
         b_input_ids_view2, b_input_mask_view2, b_labels_view2 = batch_view2
         # avoiding model's computation and storage of gradients -> saving memory and speeding up validation
