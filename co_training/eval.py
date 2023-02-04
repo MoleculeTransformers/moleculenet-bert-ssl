@@ -1,5 +1,6 @@
 import torch
 from utils import flat_auroc_score
+import numpy as np
 
 
 def eval_model(
@@ -62,7 +63,8 @@ def eval_model(
     tmp_eval_accuracy_view1 = flat_auroc_score(predictions_view1, labels_view1)
     tmp_eval_accuracy_view2 = flat_auroc_score(predictions_view2, labels_view2)
     tmp_eval_accuracy_combined = flat_auroc_score(
-        (predictions_view1 + predictions_view2) / 2, labels_view2
+        list(np.array(predictions_view1) + np.array(predictions_view2)) / 2,
+        labels_view2,
     )
     print("Test auroc score view1: {}".format(eval_accuracy_view1 / nb_eval_steps))
     print("Test auroc score view2: {}".format(eval_accuracy_view2 / nb_eval_steps))
