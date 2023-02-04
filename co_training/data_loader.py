@@ -178,7 +178,7 @@ class MoleculeDataLoader:
         self.test_dataloader_view1 = DataLoader(
             test_data_view1,
             sampler=test_sampler_view1,
-            batch_size=max(self.batch_size, len(test_data_view1)),
+            batch_size=min(self.batch_size, len(test_data_view1)),
         )
         test_data_view2 = TensorDataset(
             self.molecule_data.test_inputs_view2,
@@ -189,7 +189,7 @@ class MoleculeDataLoader:
         self.test_dataloader_view2 = DataLoader(
             test_data_view2,
             sampler=test_sampler_view2,
-            batch_size=max(self.batch_size, len(test_data_view2)),
+            batch_size=min(self.batch_size, len(test_data_view2)),
         )
         print("finished creating dataloaders")
 

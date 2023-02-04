@@ -4,7 +4,7 @@ from keras_preprocessing.sequence import pad_sequences
 from transformers import BertTokenizer
 from tqdm import tqdm
 import logging
-import random
+
 
 from deepchem.molnet import (
     load_bbbp,
@@ -55,30 +55,22 @@ class MoleculeData:
         Separate out labels and texts
         """
         num_samples = 1_000_000
-        molecules_view1 = None
-        train_labels = None
         if self.debug:
             print("Debug mode is enabled")
             num_samples = 100
-        elif self.dataset_name == "tox21":
-            label_df = pd.DataFrame(self.train_dataset.y[:, 11], columns=["labels"])
-            _indices = list(label_df[label_df["labels"] == 1].index)[
-                :1000
-            ] + random.sample(list(label_df[label_df["labels"] == 0].index), 2800)
-
-            molecules_view1 = self.train_dataset.ids[_indices]
-            train_labels = self.train_dataset.y[_indices, 11]
-        else:
-            molecules_view1 = self.train_dataset.ids[:num_samples]
+        molecules_view1 = self.train_dataset.ids[:num_samples]
         print("Enumerating train SMILES")
         molecules_view2 = [
             self.enumerator.enumerate_smiles(input_smiles=smiles)
             for smiles in molecules_view1
         ]
 
+        train_labels = None
         if self.dataset_name == "clintox":
             train_labels = self.train_dataset.y[:num_samples, 1]
-        elif self.dataset_name != "tox21":
+        elif self.dataset_name == "tox21":
+            train_labels = self.train_dataset.y[:num_samples, 11]
+        else:
             train_labels = np.array(
                 [int(label[0]) for label in self.train_dataset.y][:num_samples]
             )

@@ -151,8 +151,6 @@ def train_co_training(
         ## set our model to training mode
         model_view1.train()
         model_view2.train()
-        model_view1.to(device)
-        model_view2.to(device)
 
         ## tracking variables
         tr_loss = 0
