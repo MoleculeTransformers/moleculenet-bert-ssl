@@ -63,7 +63,7 @@ def eval_model(
     tmp_eval_accuracy_view1 = flat_auroc_score(predictions_view1, labels_view1)
     tmp_eval_accuracy_view2 = flat_auroc_score(predictions_view2, labels_view2)
     tmp_eval_accuracy_combined = flat_auroc_score(
-        list(np.array(predictions_view1) + np.array(predictions_view2)) / 2,
+        list((np.array(predictions_view1) + np.array(predictions_view2)) / 2),
         labels_view2,
     )
     print("Test auroc score view1: {}".format(eval_accuracy_view1 / nb_eval_steps))
