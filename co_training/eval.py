@@ -66,9 +66,9 @@ def eval_model(
         list((np.array(predictions_view1) + np.array(predictions_view2)) / 2),
         labels_view2,
     )
-    print("Test auroc score view1: {}".format(eval_accuracy_view1 / nb_eval_steps))
-    print("Test auroc score view2: {}".format(eval_accuracy_view2 / nb_eval_steps))
-    print("Test auroc combined: {}".format(eval_accuracy_combined / nb_eval_steps))
+    print("Test auroc score view1: {}".format(tmp_eval_accuracy_view1))
+    print("Test auroc score view2: {}".format(tmp_eval_accuracy_view2))
+    print("Test auroc combined: {}".format(tmp_eval_accuracy_combined))
     with open(out_file, "a+") as f:
         f.write(
             f"{dataset_name}, {samples_per_class}, {posterior_threshold}, {tmp_eval_accuracy_view1}, {tmp_eval_accuracy_view2}, {tmp_eval_accuracy_combined}\n"
