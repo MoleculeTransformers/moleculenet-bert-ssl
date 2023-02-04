@@ -42,7 +42,6 @@ def eval_model(
         predictions_view1 += list(logits_view1[0].detach().cpu().numpy())
         labels_view1 += list(b_labels_view1.to("cpu").numpy())
 
-        eval_accuracy_view1 += tmp_eval_accuracy_view1
         # add batch to GPU
         batch_view2 = tuple(t.to(device) for t in batch_view2)
         # unpack the inputs from our dataloader
@@ -59,9 +58,6 @@ def eval_model(
         # Move logits and labels to CPU
         predictions_view2 += list(logits_view2[0].detach().cpu().numpy())
         labels_view2 += list(b_labels_view2.to("cpu").numpy())
-
-        eval_accuracy_view2 += tmp_eval_accuracy_view2
-        # combine logits from both view models
 
         eval_accuracy_combined += tmp_eval_accuracy_combined
         nb_eval_steps += 1
