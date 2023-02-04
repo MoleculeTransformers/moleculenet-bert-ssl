@@ -16,7 +16,8 @@ def eval_model(
     ## tracking variables
     eval_accuracy_view1, eval_accuracy_view2, eval_accuracy_combined = 0, 0, 0
     nb_eval_steps = 0
-
+    model_view1.eval()
+    model_view2.eval()
     # Evaluate data for one epoch
     for batch_view1, batch_view2 in zip(
         test_dataloader_view1,
