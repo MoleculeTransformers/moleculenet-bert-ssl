@@ -100,6 +100,27 @@ parser.add_argument(
     metavar="OF",
     help="outpul file for logging metrics",
 )
+parser.add_argument(
+    "--train-path",
+    type=str,
+    default=None,
+    metavar="TPATH",
+    help="Path to custom train file.",
+)
+parser.add_argument(
+    "--val-path",
+    type=str,
+    default=None,
+    metavar="VPATH",
+    help="Path to custom validation file",
+)
+parser.add_argument(
+    "--test-path",
+    type=str,
+    default=None,
+    metavar="TEPATH",
+    help="Path to custom test file",
+)
 
 args = parser.parse_args()
 
@@ -107,14 +128,16 @@ args = parser.parse_args()
 if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     data_loaders = MoleculeDataLoader(
-        dataset_name=args.dataset_name, batch_size=args.batch_size, debug=args.debug
+        dataset_name=args.dataset_name,
+        batch_size=args.batch_size,
+        debug=args.debug,
+        train_path=args.train_path,
+        val_path=args.val_path,
+        test_path=args.test_path,
     )
-    if args.train_ssl:
-        data_loaders.create_semi_supervised_loaders(
-            samples_per_class=args.samples_per_class
-        )
-    else:
-        data_loaders.create_supervised_loaders(samples_per_class=args.samples_per_class)
+    data_loaders.create_semi_supervised_loaders(
+        samples_per_class=args.samples_per_class
+    )
 
     model_view1 = BERTClassifier(num_labels=args.num_labels).get_model(
         model_name_or_path=args.model_name_or_path

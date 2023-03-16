@@ -31,14 +31,30 @@ MOLECULE_NET_DATASETS = {
 
 
 class MoleculeData:
-    def __init__(self, dataset_name, max_sequence_length=512, debug=0):
+    def __init__(
+        self,
+        dataset_name,
+        max_sequence_length=512,
+        debug=0,
+        train_path=None,
+        val_path=None,
+        test_path=None,
+    ):
         """
         Load dataset and bert tokenizer
         """
         self.debug = debug
         ## load data into memory
-        tasks, datasets, transformers = MOLECULE_NET_DATASETS[dataset_name]()
-        self.train_dataset, self.valid_dataset, self.test_dataset = datasets
+        if dataset_name == "custom":
+            self.train_dataset = pd.read_csv(train_path)
+            self.valid_dataset = pd.read_csv(val_path)
+            self.test_dataset = pd.read_csv(test_path)
+        else:
+            ## load data into memory
+            tasks, datasets, transformers = MOLECULE_NET_DATASETS[dataset_name](
+                reload=False
+            )
+            self.train_dataset, self.valid_dataset, self.test_dataset = datasets
 
         ## set max sequence length for model
         self.max_sequence_length = max_sequence_length
@@ -57,7 +73,11 @@ class MoleculeData:
         if self.debug:
             print("Debug mode is enabled")
             num_samples = 100
-        molecules_view1 = self.train_dataset.ids[:num_samples]
+        molecules_view1 = None
+        if self.dataset_name == "custom":
+            molecules_view1 = self.train_dataset.smiles.values
+        else:
+            molecules_view1 = self.train_dataset.ids[:num_samples]
         print("Enumerating train SMILES")
         molecules_view2 = [
             self.enumerator.enumerate_smiles(input_smiles=smiles)
@@ -69,12 +89,18 @@ class MoleculeData:
             train_labels = self.train_dataset.y[:num_samples, 1]
         elif self.dataset_name == "tox21":
             train_labels = self.train_dataset.y[:num_samples, 11]
+        elif self.dataset_name == "custom":
+            train_labels = self.train_dataset.y.values
         else:
             train_labels = np.array(
                 [int(label[0]) for label in self.train_dataset.y][:num_samples]
             )
 
-        val_molecules_view1 = self.valid_dataset.ids
+        val_molecules_view1 = None
+        if self.dataset_name == "custom":
+            val_molecules_view1 = self.valid_dataset.smiles.values
+        else:
+            val_molecules_view1 = self.valid_dataset.ids
         val_molecules_view2 = [
             self.enumerator.enumerate_smiles(input_smiles=smiles)
             for smiles in val_molecules_view1
@@ -84,10 +110,16 @@ class MoleculeData:
             val_labels = list(self.valid_dataset.y[:num_samples, 1])
         elif self.dataset_name == "tox21":
             val_labels = list(self.valid_dataset.y[:num_samples, 11])
+        elif self.dataset_name == "custom":
+            val_labels = list(self.valid_dataset.y.values)
         else:
             val_labels = [int(label[0]) for label in self.valid_dataset.y]
 
-        test_molecules_view1 = self.test_dataset.ids
+        test_molecules_view1 = None
+        if self.dataset_name == "custom":
+            test_molecules_view1 = self.test_dataset.smiles.values
+        else:
+            test_molecules_view1 = self.test_dataset.ids
         test_molecules_view2 = [
             self.enumerator.enumerate_smiles(input_smiles=smiles)
             for smiles in test_molecules_view1
@@ -97,6 +129,8 @@ class MoleculeData:
             test_labels = list(self.test_dataset.y[:num_samples, 1])
         elif self.dataset_name == "tox21":
             test_labels = list(self.test_dataset.y[:num_samples, 11])
+        elif self.dataset_name == "custom":
+            test_labels = list(self.test_dataset.y.values)
         else:
             test_labels = [int(label[0]) for label in self.test_dataset.y]
 

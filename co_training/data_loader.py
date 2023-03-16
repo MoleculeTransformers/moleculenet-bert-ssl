@@ -6,60 +6,19 @@ import random
 
 
 class MoleculeDataLoader:
-    def __init__(self, dataset_name, batch_size=8, debug=0):
-        self.molecule_data = MoleculeData(dataset_name, debug=debug)
+    def __init__(
+        self,
+        dataset_name,
+        batch_size=8,
+        debug=0,
+        train_path=None,
+        val_path=None,
+        test_path=None,
+    ):
+        self.molecule_data = MoleculeData(dataset_name, debug=debug, train_path=train_path,
+            val_path=val_path,
+            test_path=test_path,)
         self.batch_size = batch_size
-
-    def create_supervised_loaders(self, samples_per_class=-1):
-        """
-        Create Torch dataloaders for data splits
-        """
-
-        self.molecule_data.text_to_tensors()
-        print("creating dataloaders")
-        data_view_1 = None
-        print(f"SAMPLES per class: {samples_per_class}")
-        if samples_per_class > 0:
-            label_df = pd.DataFrame(self.molecule_data.train_labels, columns=["labels"])
-            tp = label_df[label_df["labels"] == 1].sample(samples_per_class)
-            tn = label_df[label_df["labels"] == 0].sample(samples_per_class)
-            indices = list(tp.index) + list(tn.index)
-            data_view_1 = TensorDataset(
-                self.molecule_data.train_inputs[indices],
-                self.molecule_data.train_masks[indices],
-                self.molecule_data.train_labels[indices],
-            )
-        else:
-            data_view_1 = TensorDataset(
-                self.molecule_data.train_inputs,
-                self.molecule_data.train_masks,
-                self.molecule_data.train_labels,
-            )
-        train_sampler = RandomSampler(data_view_1)
-        self.data_view_1loader = DataLoader(
-            data_view_1, sampler=train_sampler, batch_size=self.batch_size
-        )
-
-        validation_data = TensorDataset(
-            self.molecule_data.validation_inputs,
-            self.molecule_data.validation_masks,
-            self.molecule_data.validation_labels,
-        )
-        validation_sampler = SequentialSampler(validation_data)
-        self.validation_dataloader = DataLoader(
-            validation_data, sampler=validation_sampler, batch_size=self.batch_size * 4
-        )
-
-        test_data = TensorDataset(
-            self.molecule_data.test_inputs,
-            self.molecule_data.test_masks,
-            self.molecule_data.test_labels,
-        )
-        test_sampler = SequentialSampler(test_data)
-        self.test_dataloader = DataLoader(
-            test_data, sampler=test_sampler, batch_size=self.batch_size * 4
-        )
-        print("finished creating dataloaders")
 
     def create_semi_supervised_loaders(self, samples_per_class=100, n_augmentations=0):
         """
