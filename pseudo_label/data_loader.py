@@ -14,6 +14,9 @@ class MoleculeDataLoader:
         n_augment=0,
         samples_per_class=-1,
         model_name_or_path="shahrukhx01/smole-bert",
+        train_path=None,
+        val_path=None,
+        test_path=None,
     ):
         self.molecule_data = MoleculeData(
             dataset_name,
@@ -21,6 +24,9 @@ class MoleculeDataLoader:
             n_augment=n_augment,
             samples_per_class=samples_per_class,
             model_name_or_path=model_name_or_path,
+            train_path=train_path,
+            val_path=val_path,
+            test_path=test_path,
         )
         self.batch_size = batch_size
 

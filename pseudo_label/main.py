@@ -104,6 +104,27 @@ parser.add_argument(
     metavar="NAUG",
     help="number of enumeration augmentations",
 )
+parser.add_argument(
+    "--train-path",
+    type=str,
+    default=None,
+    metavar="TPATH",
+    help="Path to custom train file.",
+)
+parser.add_argument(
+    "--val-path",
+    type=str,
+    default=None,
+    metavar="VPATH",
+    help="Path to custom validation file",
+)
+parser.add_argument(
+    "--test-path",
+    type=str,
+    default=None,
+    metavar="TEPATH",
+    help="Path to custom test file",
+)
 
 
 args = parser.parse_args()
@@ -118,6 +139,9 @@ if __name__ == "__main__":
         n_augment=args.n_augment,
         samples_per_class=args.samples_per_class,
         model_name_or_path=args.model_name_or_path,
+        train_path=args.train_path,
+        val_path=args.val_path,
+        test_path=args.test_path,
     )
     if args.train_ssl:
         data_loaders.create_semi_supervised_loaders(
